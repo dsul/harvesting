@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+require "pry"
 require "http"
 require "json"
 
@@ -38,19 +38,29 @@ module Harvesting
     end
 
     def time_entries(opts = {})
-      Harvesting::Models::TimeEntries.new(get("time_entries", opts), client: self)
+      Harvesting::Models::TimeEntries.new(get("time_entries", opts), opts, client: self)
     end
 
     def projects(opts = {})
-      Harvesting::Models::Projects.new(get("projects", opts), client: self)
+      Harvesting::Models::Projects.new(get("projects", opts), opts, client: self)
     end
 
     def tasks(opts = {})
-      Harvesting::Models::Tasks.new(get("tasks", opts), client: self)
+      Harvesting::Models::Tasks.new(get("tasks", opts), opts, client: self)
     end
 
     def users(opts = {})
-      Harvesting::Models::Users.new(get("users", opts), client: self)
+      Harvesting::Models::Users.new(get("users", opts), opts, client: self)
+    end
+
+    def user_assignments(project = nil, opts = {})
+      path = project.nil? ? "user_assignments" : "projects/#{project.id}/user_assignments"
+      Harvesting::Models::ProjectUserAssignments.new(project, get(path, opts), opts, client: self)
+    end
+
+    def task_assignments(project = nil, opts = {})
+      path = project.nil? ? "task_assignments" : "projects/#{project.id}/task_assignments"
+      Harvesting::Models::ProjectTaskAssignments.new(project, get(path, opts), opts, client: self)
     end
 
     def create(entity)

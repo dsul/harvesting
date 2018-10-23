@@ -1,14 +1,13 @@
 module Harvesting
   module Models
-    class Client < Base
+    class Client < HarvestRecord
       attributed :id,
                  :name,
                  :is_active,
                  :address,
+                 :currency,
                  :created_at,
-                 :updated_at,
-                 :currency
-
+                 :updated_at
     end
   end
 end

@@ -127,7 +127,6 @@ RSpec.describe Harvesting::Client do
         #       the ability to create a new vcr cassette for this account
         first_time_entry = time_entries.first
         expect(first_time_entry.user.id).to eq(1969760)
-        expect(first_time_entry.user.name).to eq('Ernesto Tagwerker')
       end
     end
 
@@ -141,6 +140,48 @@ RSpec.describe Harvesting::Client do
         end
 
         expect(cursor).to eq(118)
+      end
+
+      context 'with custom options' do
+        let(:result1) do
+          entries = []
+          100.times { entries.push({}) }
+          {
+              time_entries: entries,
+              per_page: 100,
+              total_pages: 2,
+              total_entries: 115,
+              next_page: 2,
+              previous_page: nil,
+              page: 1
+          }
+          end
+
+        let(:result2) do
+          entries = []
+          15.times { entries.push({}) }
+          {
+              time_entries: entries,
+              per_page: 100,
+              total_pages: 2,
+              total_entries: 115,
+              next_page: nil,
+              previous_page: 1,
+              page: 2
+          }
+        end
+
+        it 'uses the custom options on subsequent page fetches' do
+          stub_request(:get, /time_entries/).
+            to_return({ body: result1.to_json }, { body: result2.to_json })
+
+          time_entries = subject.time_entries(from: "2018-02-15", to: "2018-04-27")
+
+          time_entries.each { |entry| }
+
+          expect(WebMock).to have_requested(:get, /time_entries/).
+            with(query: {"from" => "2018-02-15", "page" => "2", "to" => "2018-04-27"})
+        end
       end
     end
   end
