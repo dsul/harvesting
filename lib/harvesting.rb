@@ -12,6 +12,7 @@ require "harvesting/models/project"
 require "harvesting/models/invoice"
 require "harvesting/models/task"
 require "harvesting/models/task_assignment"
+require "harvesting/models/user_assignment"
 require "harvesting/models/time_entry"
 # harvest record collections
 require "harvesting/models/tasks"
@@ -19,6 +20,9 @@ require "harvesting/models/users"
 require "harvesting/models/contact"
 require "harvesting/models/time_entries"
 require "harvesting/models/projects"
+require "harvesting/models/task_assignments"
+require "harvesting/models/user_assignments"
+require "harvesting/models/invoices"
 # API client
 require "harvesting/client"
 

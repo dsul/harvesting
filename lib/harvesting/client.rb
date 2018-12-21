@@ -46,15 +46,20 @@ module Harvesting
       Harvesting::Models::Tasks.new(get("tasks", opts), opts, client: self)
     end
 
+    def task_assignments(opts = {})
+      Harvesting::Models::TaskAssignments.new(get("task_assignments", opts), opts, client: self)
+    end
 
     def users(opts = {})
       Harvesting::Models::Users.new(get("users", opts), opts, client: self)
     end
 
-    def invoices
-      get("invoices")["invoices"].map do |result|
-        Harvesting::Models::Invoice.new(result, client: self)
-      end
+    def user_assignments(opts = {})
+      Harvesting::Models::UserAssignments.new(get("user_assignments", opts), opts, client: self)
+    end
+
+    def invoices(opts = {})
+      Harvesting::Models::Invoices.new(get("invoices", opts), opts, client: self)
     end
 
     def create(entity)
