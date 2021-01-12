@@ -1,5 +1,8 @@
 module Harvesting
   module Models
+    # An invoice record from your Harvest account.
+    #
+    # For more information: https://help.getharvest.com/api-v2/invoices-api/invoices/invoices/
     class Invoice < HarvestRecord
       attributed :id,
                  :client_key,
@@ -29,6 +32,13 @@ module Harvesting
                  :created_at,
                  :updated_at
 
+      def line_items
+        @line_items ||= @attributes['line_items'].map { |line_item_attributes| LineItem.new line_item_attributes, { harvest_client: harvest_client } }
+      end
+
+      def path
+        @attributes['id'].nil? ? "invoices" : "invoices/#{@attributes['id']}"
+      end
     end
   end
 end

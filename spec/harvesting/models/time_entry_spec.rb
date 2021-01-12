@@ -4,7 +4,7 @@ RSpec.describe Harvesting::Models::TimeEntry, :vcr do
   include_context "harvest data setup"
 
   let(:attrs) { Hash.new }
-  let(:time_entry) { Harvesting::Models::TimeEntry.new(attrs, client: harvest_client) }
+  let(:time_entry) { Harvesting::Models::TimeEntry.new(attrs, harvest_client: harvest_client) }
   let(:date) { "2018-05-14" }
   let(:started_time) { "8:00am" }
   let(:ended_time) { "9:00am" }
@@ -52,19 +52,19 @@ RSpec.describe Harvesting::Models::TimeEntry, :vcr do
     context "when trying to create a time entry with the required attributes" do
       let(:attrs) do
         {
-            project: {
-                id: project_id
+            "project" => {
+                "id" => project_id.to_s
             },
-            task: {
-                id: task_id
+            "task" => {
+                "id" => task_id.to_s
             },
-            spent_date: date,
-            hours: '1.0',
-            user: {
-                id: user_id
+            "spent_date" => date,
+            "hours" => '1.0',
+            "user" => {
+                "id" => user_id.to_s
             },
-            is_running: 'false',
-            notes: 'hacked the things'
+            "is_running" => 'false',
+            "notes" => 'hacked the things'
         }
       end
 
@@ -82,25 +82,33 @@ RSpec.describe Harvesting::Models::TimeEntry, :vcr do
   describe "#update" do
     let(:attrs) do
       {
-          project: {
-              id: project_id
+          "project" => {
+              "id" => project_id.to_s
           },
-          task: {
-              id: task_id
+          "task" => {
+              "id" => task_id.to_s
           },
-          spent_date: date,
-          hours: '1.0',
-          user: {
-              id: user_id
+          "spent_date" => date,
+          "hours" => '1.0',
+          "user" => {
+              "id" => user_id.to_s
           },
-          is_running: 'false',
-          notes: 'hacked the things'
+          "is_running" => 'false',
+          "notes" => 'hacked the things'
       }
     end
 
     context "when updating an existing time entry" do
-      xit "updates the amount of hours" do
-        # TODO: fixme
+      it "updates the amount of hours" do
+        # trigger time entry creation
+        time_entry.save
+
+        # update with a different number of hours
+        time_entry.hours = '4.0'
+        time_entry.save
+
+        final_time_entry = Harvesting::Models::TimeEntry.get(time_entry.id)
+        expect(final_time_entry.hours).to eq(4.0)
       end
     end
   end

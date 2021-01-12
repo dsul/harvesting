@@ -1,5 +1,8 @@
 module Harvesting
   module Models
+    # A project record from your Harvest account.
+    #
+    # For more information: https://help.getharvest.com/api-v2/projects-api/projects/projects/
     class Project < HarvestRecord
       attributed :id,
                  :name,
@@ -28,7 +31,27 @@ module Harvesting
       modeled client: Client
 
       def path
-        id.nil? ? "projects" : "projects/#{id}"
+        @attributes['id'].nil? ? "projects" : "projects/#{@attributes['id']}"
+      end
+      
+      def to_hash
+        { client_id: client.id }.merge(super)
+      end
+
+      def time_entries
+        harvest_client.time_entries(project_id: self.id)
+      end
+
+      # Provides access to the user assignments that are associated with this
+      # project.
+      def user_assignments
+        harvest_client.user_assignments(project_id: self.id)
+      end
+
+      # Provides access to the task assignments that are associated with this
+      # project.
+      def task_assignments
+        harvest_client.task_assignments(project_id: self.id)
       end
     end
   end
