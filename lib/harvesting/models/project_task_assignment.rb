@@ -1,6 +1,9 @@
 module Harvesting
   module Models
-    class TaskAssignment < HarvestRecord
+    # A task assignment record from your Harvest account.
+    #
+    # For more information: https://help.getharvest.com/api-v2/projects-api/projects/task-assignments/
+    class ProjectTaskAssignment < HarvestRecord
       attributed :id,
                  :is_active,
                  :billable,
@@ -21,7 +24,10 @@ module Harvesting
       #   # TODO: handle case where project's id is part of json object
       #   @attributes["project_id"]
       # end
-
+      
+      def to_hash
+        { project_id: project.id, task_id: task.id }.merge(super)
+      end
     end
   end
 end

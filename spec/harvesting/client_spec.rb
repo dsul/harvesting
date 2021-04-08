@@ -52,6 +52,18 @@ RSpec.describe Harvesting::Client, :vcr do
     end
   end
 
+  describe "throttling", :vcr do
+    context "when client reaches the API rate limit" do
+      subject { Harvesting::Client.new(access_token: access_token, account_id: account_id) }
+
+      it "raises a Harvesting::RateLimitExceeded" do
+        expect do
+          subject.me
+        end.to raise_error(Harvesting::RateLimitExceeded)
+      end
+    end
+  end
+
   describe "#contacts", :vcr do
     subject { Harvesting::Client.new(access_token: access_token, account_id: account_id) }
 
@@ -94,8 +106,30 @@ RSpec.describe Harvesting::Client, :vcr do
       it "returns the clients associated with the account" do
         clients = subject.clients
 
+        expect(clients).to be_instance_of(Harvesting::Models::Clients)
         expect(clients.map(&:name)).to eq(["Toto", "Pepe"])
       end
+    end
+  end
+
+  describe "#delete", :vcr do
+    let(:message) do
+      '{"message":"This client is not removable. It still has projects and/or invoices."}'
+    end
+
+    it "raises a UnprocessableRequest exception if entity is not removable" do
+      client = Harvesting::Models::Client.new(name: "Mr. Robot")
+      client.save
+
+      project = Harvesting::Models::Project.new(
+        "name" => "E-Corp",
+        "client" => client.to_hash
+      )
+      project.save
+
+      expect do
+        client.delete
+      end.to raise_error(Harvesting::UnprocessableRequest, message)
     end
   end
 
@@ -106,8 +140,8 @@ RSpec.describe Harvesting::Client, :vcr do
     # fixtures/vcr_cassettes/Harvesting_Client_me/returns_the_authenticated_user.yml
     it "returns the authenticated user" do
       user = subject.me
-      expect(user.first_name).to eq("123")
-      expect(user.last_name).to eq("123")
+      expect(user.first_name).to eq(ENV['HARVEST_FIRST_NAME'])
+      expect(user.last_name).to eq(ENV['HARVEST_LAST_NAME'])
     end
   end
 
@@ -539,6 +573,80 @@ RSpec.describe Harvesting::Client, :vcr do
         end
       end
     end
+  end
 
+  describe "#user_assignments", :vcr do
+    context "as an admin user" do
+      subject { Harvesting::Client.new(access_token: admin_access_token, account_id: account_id) }
+
+      it 'retreives the accounts user assignments' do
+        user_assignments = subject.user_assignments
+
+        projects = user_assignments.map { |ua| ua.project.id }.uniq
+        expect(projects).to contain_exactly(
+          project_castle_building.id,
+          project_road_building.id
+        )
+
+        users = user_assignments.map { |ua| ua.user.id }.uniq
+        expect(users).to contain_exactly(
+          user_john_smith.id,
+          user_jane_doe.id,
+          user_me.id
+        )
+      end
+    end
+  end
+
+  describe '#task_assignments' do
+    context "as an admin user" do
+      subject { Harvesting::Client.new(access_token: admin_access_token, account_id: account_id) }
+
+      it 'retrieves the accounts task assignments' do
+        task_assignments = subject.task_assignments
+
+        projects = task_assignments.map { |ta| ta.project.id }.uniq
+        expect(projects).to contain_exactly(
+          project_castle_building.id,
+          project_road_building.id
+        )
+
+        tasks = task_assignments.map { |ta| ta.task.id }.uniq
+        expect(tasks).to contain_exactly(
+          task_coding.id,
+          task_writing.id
+        )
+      end
+    end
+  end
+
+  describe "#invoices", :vcr do
+    subject { Harvesting::Client.new(access_token: admin_access_token, account_id: admin_account_id) }
+
+    context "when account has no invoices" do
+      it "returns the invoices associated with the account" do
+        invoices = subject.invoices
+        expect(invoices.map(&:id)).to be_empty
+      end
+    end
+
+    context "when account has invoices" do
+      it "returns the invoices associated with the account" do
+        invoices = subject.invoices
+        expect(invoices.size).to eq(3)
+      end
+
+      it "builds line items for invoices" do
+        invoices = subject.invoices
+        expect(invoices.first.line_items.first).to be_kind_of(Harvesting::Models::LineItem)
+      end
+
+      context 'with custom options' do
+        it "only returns the invoices mathing the options" do
+          invoices = subject.invoices(state: :draft)
+          expect(invoices.size).to eq(2)
+        end
+      end
+    end
   end
 end

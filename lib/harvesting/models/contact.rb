@@ -1,5 +1,8 @@
 module Harvesting
   module Models
+    # A contact record from your Harvest account.
+    #
+    # For more information: https://help.getharvest.com/api-v2/clients-api/clients/contacts/
     class Contact < HarvestRecord
       attributed :id,
                  :title,
@@ -15,7 +18,11 @@ module Harvesting
       modeled client: Client
 
       def path
-        id.nil? ? "contacts" : "contacts/#{id}"
+        @attributes['id'].nil? ? "contacts" : "contacts/#{@attributes['id']}"
+      end
+      
+      def to_hash
+        { client_id: client.id }.merge(super)
       end
     end
   end

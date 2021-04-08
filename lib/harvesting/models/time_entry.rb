@@ -1,5 +1,8 @@
 module Harvesting
   module Models
+    # A time entry record from your Harvest account.
+    #
+    # For more information: https://help.getharvest.com/api-v2/timesheets-api/timesheets/time-entries/
     class TimeEntry < HarvestRecord
       attributed :id,
                  :spent_date,
@@ -20,18 +23,22 @@ module Harvesting
                  :invoice,
                  :external_reference,
                  :created_at,
-                 :updated_at,
-                 :user_assignment # temporarily return the hash itself until the model is added
+                 :updated_at
 
       modeled project: Project,
               user: User,
               task: Task,
               client: Client,
-              task_assignment: TaskAssignment
+              task_assignment: ProjectTaskAssignment,
+              user_assignment: ProjectUserAssignment
 
 
       def path
-        id.nil? ? "time_entries" : "time_entries/#{id}"
+        @attributes['id'].nil? ? "time_entries" : "time_entries/#{@attributes['id']}"
+      end
+
+      def to_hash
+        { project_id: project.id, task_id: task.id, user_id: user.id }.merge(super)
       end
 
     end

@@ -1,7 +1,11 @@
 module Harvesting
   module Models
+    # An user record from your Harvest account.
+    #
+    # For more information: https://help.getharvest.com/api-v2/users-api/users/users/
     class User < HarvestRecord
       attributed :id,
+                 :name,
                  :first_name,
                  :last_name,
                  :email,
@@ -24,7 +28,11 @@ module Harvesting
                  :updated_at
 
       def path
-        id.nil? ? "users" : "users/#{id}"
+        @attributes['id'].nil? ? "users" : "users/#{@attributes['id']}"
+      end
+
+      def name
+        @attributes['name'].nil? ? "#{first_name} #{last_name}" : @attributes['name']
       end
     end
   end
